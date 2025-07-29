@@ -1,3 +1,4 @@
+version: '3.8'
 services:
   postgres:
     image: "postgres"
@@ -8,7 +9,9 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - app-network
 
   app:
     build:
@@ -18,3 +21,18 @@ services:
       - 8080:8080
     depends_on:
       - postgres
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=root
+      - DB_PORT=5432
+    networks:
+      - app-network
+
+volumes:
+  postgres-data:  # Volume gerenciado pelo Docker
+
+networks:
+  app-network:
+    driver: bridge
