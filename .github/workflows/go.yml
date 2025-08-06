@@ -1,0 +1,43 @@
+# Este workflow irá construir um projeto Golang
+# Para mais informações, veja: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Integração Contínua # Nome do workflow que aparecerá no GitHub Actions
+
+on: # Define quando o workflow será executado.
+  push:
+    branches: ["main"] # Executa este workflow quando houver um push na branch main
+  pull_request:
+    branches: ["main"] # Executa este workflow quando houver um pull request para a branch main
+
+jobs: # Define as unidades de trabalho que serão executadas no workflow. Cada job é uma série de passos executados em um ambiente específico.
+  ci: # Define um job chamado 'ci' (Continuous Integration)
+    runs-on: ubuntu-latest # Especifica que este job será executado na versão mais recente do Ubuntu
+    steps:
+      - name: Checkout do código # Nome da etapa: clona o repositório para o ambiente do GitHub Actions
+        uses: actions/checkout@v4 # Utiliza a action 'checkout' para baixar o código do repositório
+
+      - name: Configurar o Go # Nome da etapa: instala a versão especificada do Go
+        uses: actions/setup-go@v4 # Utiliza a action 'setup-go' para configurar o ambiente Go
+        with:
+          go-version: "1.22" # Define a versão do Go para 1.22
+
+      - name: Inicia banco de dados # Nome da etapa: inicializa o container do PostgreSQL usando Docker Compose
+        run: docker compose up -d postgres # Executa o comando para iniciar o serviço postgres em background
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.59
+          args: controllers/ database/ models/ routes/
+
+      - name: Test # Nome da etapa: executa os testes unitários
+        run: DB_HOST=${{ secrets.DB_HOST }} DB_PASSWORD=${{ secrets.DB_PASSWORD }} DB_USER=${{ secrets.DB_USER }} DB_NAME=${{ secrets.DB_NAME }} DB_PORT=${{ secrets.DB_PORT }} go test -v main_test.go
+
+      - name: Build
+        run: go build main.go
+
+      - name: Projeto compilado
+        uses: actions/upload-artifact@v4
+        with:
+          name: projeto_compilado
+          path: main
