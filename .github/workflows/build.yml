@@ -7,8 +7,13 @@ on:
 
 jobs:
   build:
+    # Informamos que queremos utilizar como ambiente a versão mais recente do ubuntu dentro
+    # do servidor do github actions:
     runs-on: ubuntu-latest
+    # Passos do meu job:
     steps:
+      # A Action abaixo faz um git clone do nosso projeto e acessa a pasta do projeto
+      # normalmente chamdo de "workflow":
       - uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
